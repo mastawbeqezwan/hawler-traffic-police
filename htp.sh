@@ -33,7 +33,6 @@ sorani_to_latin() {
         -e 's/ە/e/g' -e 's/ئ//g'
 }
 
-COOKIE_JAR=$(mktemp)
 show_help() {
     echo "Usage: $0 [options]"
     echo "$0 <Vehicle Type> <Plate Character> <Plater Number> <Registration Number>"
@@ -49,29 +48,21 @@ show_help() {
     echo "  $0 m A 123 0123456"
 }
 
-NOO='<div class="container mb-3 alert alert-info"><h5> ئۆتۆمبێلى ژماره‌ <span class="text-danger">1234 - تایبەت</span> هیچ سزایه‌كى له‌سه‌ر نیه‌</h5></div>'
-
 function fetch_data {
-    # Step 1: Create a temporary file to store cookies
+    COOKIE_JAR=$(mktemp)
+    curl -s -c "$COOKIE_JAR" -A "$USER_AGENT" "https://htp.moi.gov.krd/fines_form.php" >/dev/null
 
-# Step 2: Initial GET request to obtain cookies
-curl -s -c "$COOKIE_JAR" -A "$USER_AGENT" "https://htp.moi.gov.krd/fines_form.php" > /dev/null
+    RESULT=$(curl -s -b "$COOKIE_JAR" -A "$USER_AGENT" \
+        -H "X-Requested-With: XMLHttpRequest" \
+        -H "Referer: https://htp.moi.gov.krd/fines_form.php" \
+        -H "Origin: https://htp.moi.gov.krd" \
+        -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
+        --data "Sinif=${VEHICLE_CATEGORY}&plate=${PLATE_NO}&PlateChar=${PLATE_CHAR}&SanNumber=${REG_NO}" \
+        "https://htp.moi.gov.krd/fines_form_data_1.php")
 
-# Step 3: Make POST request using stored cookies
-RESULT=$(curl -s -b "$COOKIE_JAR" -A "$USER_AGENT" \
-  -H "X-Requested-With: XMLHttpRequest" \
-  -H "Referer: https://htp.moi.gov.krd/fines_form.php" \
-  -H "Origin: https://htp.moi.gov.krd" \
-  -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
-  --data "Sinif=${VEHICLE_CATEGORY}&plate=${PLATE_NO}&PlateChar=${PLATE_CHAR}&SanNumber=${REG_NO}" \
-  "https://htp.moi.gov.krd/fines_form_data_1.php")
-#RESULT=$(cat test)
-#echo "$RESULT"
-
-#echo "Sinif=${VEHICLE_CATEGORY}&plate=${PLATE_NO}&PlateChar=${PLATE_CHAR}&SanNumber=${REG_NO}"
     echo -e "Vehicle Category:      ${CYAN}$VEHICLE_CATEGORY${RESET}"
     echo -e "Plate Number:          ${GREEN}$PLATE_CHAR $PLATE_NO${RESET}"
-    echo -e "Registration Number:   ${GREEN}$REG_NO${RESET}"
+    echo -e "Registration Number:   ${MAGENTA}$REG_NO${RESET}"
 
     if awk -v result="$RESULT" 'BEGIN { 
         if (result ~ /<div class=".*?<\/span> هیچ سزایه‌كى له‌سه‌ر نیه‌<\/h5><\/div>/) 
@@ -85,27 +76,36 @@ RESULT=$(curl -s -b "$COOKIE_JAR" -A "$USER_AGENT" \
         total_fine_amount=$(echo "$RESULT" | awk 'match($0, /<h5>ژماره‌ى سه‌رپێچى <.*>(.*)<\/span><\/h5>/, arr) {print arr[1]}')
         total_fine=$(echo "$RESULT" | awk 'match($0, /<h5>بڕى گشتى سه‌رپێچیه‌كانى <.*>(.*)<\/span><\/h5>/, arr) {print arr[1]}')
 
-        fines=$(echo "$RESULT" | awk 'BEGIN {
+        fines=$(echo "$RESULT" | awk -v blue="$BLUE" \
+            -v green="$GREEN" \
+            -v yellow="$YELLOW" \
+            -v red="$RED" \
+            -v cyan="$CYAN" \
+            -v reset="$RESET" 'BEGIN {
         RS="</tr>";
         ORS="\n"; 
         print "Date|Time|City|Violation|Fine|Location" }
         {
             if (match($0, /<tr style="font-size: 0\.8rem">\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*<td>(.*?)<\/td>\s*/, arr)) 
-        {
-            printf "\033[34;1m%s\033[m|%s|\033[32;1m%s\033[m|\033[33;1m%s\033[m|\033[31;1m%s\033[m|\033[36;1m%s\033[m\n", arr[1], arr[7], arr[3], arr[4], arr[5], arr[6]  }
-}' |
-            sorani_to_latin |
+            {
+                printf "%s%s%s|%s|%s%s%s|%s%s%s|%s%s%s|%s%s%s\n", \
+                blue, arr[1], reset, \
+                arr[7], \
+                green, arr[3], reset, \
+                yellow, arr[4], reset, \
+                red, arr[5], reset, \
+                cyan, arr[6], reset
+            }
+        }' | sorani_to_latin |
             column -t -s '|' -o " ")
-
         echo -e "Number of Fines:       ${YELLOW}$total_fine_amount${RESET}"
         echo -e "Total Fine Amount:     ${RED}$total_fine${RESET}"
-        #print results
+
         echo -e "\n$fines"
 
         #echo -e "\n${YELLOW}I am not the one to tell you to pay the fines as soon as possible :)"
     fi
 
-    # clear cookies
     rm -f "$COOKIE_JAR"
 }
 
