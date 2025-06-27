@@ -26,11 +26,11 @@ sorani_to_latin() {
     sed -e 's/ا/a/g' -e 's/ب/b/g' -e 's/پ/p/g' -e 's/ت/t/g' -e 's/ي/y/g' \
         -e 's/ك/k/g' -e 's/ج/j/g' -e 's/چ/ch/g' -e 's/ح/h/g' -e 's/خ/kh/g' \
         -e 's/د/d/g' -e 's/ڕ/r/g' -e 's/ر/r/g' -e 's/ز/z/g' -e 's/ژ/zh/g' \
-        -e 's/س/s/g' -e 's/ش/sh/g' -e 's/ع/‘/g' -e 's/غ/gh/g' -e 's/ف/f/g' \
+        -e 's/س/s/g' -e 's/ش/sh/g' -e 's/ع/3/g' -e 's/غ/gh/g' -e 's/ف/f/g' \
         -e 's/ڤ/v/g' -e 's/ق/q/g' -e 's/ک/k/g' -e 's/گ/g/g' -e 's/ل/l/g' \
-        -e 's/ڵ/ll/g' -e 's/م/m/g' -e 's/ن/n/g' -e 's/هـ/h/g' -e 's/ه/h/g' \
+        -e 's/ڵ/ll/g' -e 's/م/m/g' -e 's/ن/n/g' -e 's/ه‌/e/g' -e 's/ه/h/g' \
         -e 's/و/w/g' -e 's/ۆ/o/g' -e 's/ۇ/u/g' -e 's/ی/y/g' -e 's/ێ/ê/g' \
-        -e 's/ە/e/g' -e 's/ئ//g'
+        -e 's/ە/e/g' -e 's/ئ//g' -e 's/ة/e/g' -e 's/ن/n/g' -e 's/ى/y/g' -e 's/\t/ /g'
 }
 
 show_help() {
@@ -61,7 +61,7 @@ function fetch_data {
         "https://htp.moi.gov.krd/fines_form_data_1.php")
 
     echo -e "Vehicle Category:      ${CYAN}$VEHICLE_CATEGORY${RESET}"
-    echo -e "Plate Number:          ${GREEN}$PLATE_CHAR $PLATE_NO${RESET}"
+    echo -e "Plate Number:          ${GREEN}$2$PLATE_NO${RESET}"
     echo -e "Registration Number:   ${MAGENTA}$REG_NO${RESET}"
 
     if awk -v result="$RESULT" 'BEGIN { 
