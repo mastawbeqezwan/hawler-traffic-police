@@ -30,12 +30,13 @@ sorani_to_latin() {
         -e 's/ڤ/v/g' -e 's/ق/q/g' -e 's/ک/k/g' -e 's/گ/g/g' -e 's/ل/l/g' \
         -e 's/ڵ/ll/g' -e 's/م/m/g' -e 's/ن/n/g' -e 's/ه‌/e/g' -e 's/ه/h/g' \
         -e 's/و/w/g' -e 's/ۆ/o/g' -e 's/ۇ/u/g' -e 's/ی/y/g' -e 's/ێ/ê/g' \
-        -e 's/ە/e/g' -e 's/ئ//g' -e 's/ة/e/g' -e 's/ن/n/g' -e 's/ى/y/g' -e 's/\t/ /g'
+        -e 's/ە/e/g' -e 's/ئ//g' -e 's/ة/e/g' -e 's/ن/n/g' -e 's/ى/y/g' \
+        -e 's/\t/ /g'
 }
 
 show_help() {
-    echo "Usage: $0 [options]"
-    echo "$0 <Vehicle Type> <Plate Character> <Plater Number> <Registration Number>"
+    echo "Usage: ./htp.sh [options]"
+    echo "./htp.sh <Vehicle Category> <Plate Character> <Plater Number> <Registration Number>"
     echo
     echo "Options:"
     echo "  -h, --help        Show this help message and exit"
@@ -43,9 +44,9 @@ show_help() {
     echo "  -v                Show script version"
     echo
     echo "Example:"
-    echo "  $0 private F 123 0123456"
-    echo "  $0 commericial - 123 0123456"
-    echo "  $0 m A 123 0123456"
+    echo "  ./htp.sh private F 123 0123456"
+    echo "  ./htp.sh commericial - 123 0123456"
+    echo "  ./htp.sh m A 123 0123456"
 }
 
 function fetch_data {
@@ -61,7 +62,7 @@ function fetch_data {
         "https://htp.moi.gov.krd/fines_form_data_1.php")
 
     echo -e "Vehicle Category:      ${CYAN}$VEHICLE_CATEGORY${RESET}"
-    echo -e "Plate Number:          ${GREEN}$2$PLATE_NO${RESET}"
+    echo -e "Plate Number:          ${GREEN}$PLATE_CHAR $PLATE_NO${RESET}"
     echo -e "Registration Number:   ${MAGENTA}$REG_NO${RESET}"
 
     if awk -v result="$RESULT" 'BEGIN { 
@@ -139,7 +140,7 @@ while [[ "$#" -gt 0 ]]; do
         exit
         ;;
     -v)
-        echo "$0 version $VERSION"
+        echo "Version $VERSION"
         exit
         ;;
     *)
