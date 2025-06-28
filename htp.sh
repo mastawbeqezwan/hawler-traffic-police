@@ -17,6 +17,7 @@ PLATE_NO=""
 PLATE_CHAR=""
 REG_NO=""
 VEHICLE_CATEGORY=""
+VEHICLE_CATEGORY_PRESENTABLE=""
 
 # Define user-agent
 USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0"
@@ -61,8 +62,9 @@ function fetch_data {
         --data "Sinif=${VEHICLE_CATEGORY}&plate=${PLATE_NO}&PlateChar=${PLATE_CHAR}&SanNumber=${REG_NO}" \
         "https://htp.moi.gov.krd/fines_form_data_1.php")
 
-    echo -e "Vehicle Category:      ${CYAN}$VEHICLE_CATEGORY${RESET}"
-    echo -e "Plate Number:          ${GREEN}$PLATE_CHAR $PLATE_NO${RESET}"
+    #echo "$RESULT"
+    echo -e "Vehicle Category:      ${CYAN}$VEHICLE_CATEGORY_PRESENTABLE${RESET}"
+    echo -e "Plate Number:          ${GREEN}$2 $PLATE_NO${RESET}"
     echo -e "Registration Number:   ${MAGENTA}$REG_NO${RESET}"
 
     if awk -v result="$RESULT" 'BEGIN { 
@@ -103,8 +105,6 @@ function fetch_data {
         echo -e "Total Fine Amount:     ${RED}$total_fine${RESET}"
 
         echo -e "\n$fines"
-
-        #echo -e "\n${YELLOW}I am not the one to tell you to pay the fines as soon as possible :)"
     fi
 
     rm -f "$COOKIE_JAR"
@@ -118,6 +118,15 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     private | p | rental | r | load | l | agricultural | a | commercial | c | motorcycle | m)
         if [ "$#" -eq 4 ] && [[ "$2" == [a-zA-Z-] ]] && [ "$3" -eq "$3" ] && [ "$4" -eq "$4" ]; then
+            VEHICLE_CATEGORY_PRESENTABLE=$(echo "$1" |
+                sed -E \
+                    -e 's/\b(private|p)\b/Private/g' \
+                    -e 's/\b(rental|r)\b/Rental/g' \
+                    -e 's/\b(load|l)\b/Load/g' \
+                    -e 's/\b(agricultural|a)\b/Agricultural/g' \
+                    -e 's/\b(commercial|c)\b/Commercial/g' \
+                    -e 's/\b(motorcycle|m)\b/Motorcycle/g')           
+            
             VEHICLE_CATEGORY=$(echo "$1" |
                 sed -E -e 's/private|p/1/g' \
                     -e 's/rental|r/2/g' \
@@ -125,9 +134,11 @@ while [[ "$#" -gt 0 ]]; do
                     -e 's/agricultural|a/4/g' \
                     -e 's/commercial|c/5/g' \
                     -e 's/motorcycle|m/6/g')
+            
             PLATE_CHAR=$([ "$2" = "-" ] && echo "0" || echo "$2")
             PLATE_NO="$3"
             REG_NO="$4"
+
             fetch_data
         else
             show_help
