@@ -130,7 +130,7 @@ while [[ "$#" -gt 0 ]]; do
             REG_NO="$4"
             fetch_data
         else
-            echo "Use --help to see correct syntax"
+            show_help
             exit 1
         fi
         exit
@@ -144,7 +144,7 @@ while [[ "$#" -gt 0 ]]; do
         exit
         ;;
     *)
-        echo "Use --help to see correct syntax"
+        show_help
         exit 1
         ;;
     esac
