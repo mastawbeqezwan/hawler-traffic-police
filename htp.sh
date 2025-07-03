@@ -3,7 +3,12 @@
 # Hawler Traffic Police Fines Checker
 # written by @mastawbeqezwan on github
 
-#  colors
+# This script is licensed under the GNU General Public License v3.0
+# See: https://www.gnu.org/licenses/gpl-3.0.html
+#
+# You are free to use, modify, and distribute this script under the terms of the GPLv3.
+
+#  Colors
 RED='\033[31;1m'
 BLUE='\033[34;1m'
 GREEN='\033[32;1m'
@@ -33,7 +38,7 @@ sorani_to_latin() {
 
 show_help() {
     cat <<EOF
-Usage: $0 [options] <Vehicle Type> [<Plate Character>] <Plate Number> <Registration Number>
+Usage: $0 <Vehicle Type> [<Plate Character>] <Plate Number> <Registration Number>
 
 Options:
   -h, --help        Show this help message and exit
@@ -49,7 +54,7 @@ Vehicle Type:
 
 Examples:
   $0 private F 123 0123456
-  $0 commercial B 123 0123456
+  $0 c B 123 0123456
   $0 motorcycle 123 0123456     (without Plate Character)
 EOF
 }
@@ -105,9 +110,10 @@ function fetch_data {
         -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
         --data "Sinif=${vehicle_type}&plate=${plate_number}&PlateChar=${plate_char}&SanNumber=${registration_number}" \
         "https://htp.moi.gov.krd/fines_form_data_1.php")
-
-    # Check if the curl command make a successful request
+    
+    # Check if the curl command made a successful request
     if [ "$?" -eq 0 ]; then
+        echo -e "${YELLOW}Hawler Traffic Police${RESET}\n"
         echo -e "Vehicle Type:          ${CYAN}$vehicle_type_text${RESET}"
         echo -e "Plate Number:          ${GREEN}${plate_char_text}$plate_number${RESET}"
         echo -e "Registration Number:   ${MAGENTA}$registration_number${RESET}"
