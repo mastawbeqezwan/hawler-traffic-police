@@ -101,25 +101,32 @@ function fetch_data {
     local registration_number="$3"
    
     COOKIE_JAR=$(mktemp)
-    curl -s -c "$COOKIE_JAR" -A "$USER_AGENT" "https://htp.moi.gov.krd/fines_form.php" >/dev/null
+    curl -s \
+        -c "$COOKIE_JAR" \
+        -A "$USER_AGENT" \
+        -m 15 "https://htp.moi.gov.krd/fines_form.php" >/dev/null
 
-    RESULT=$(curl -s -b "$COOKIE_JAR" -A "$USER_AGENT" \
+    RESULT=$(curl -s \
+        -b "$COOKIE_JAR" \
+        -A "$USER_AGENT" \
         -H "X-Requested-With: XMLHttpRequest" \
         -H "Referer: https://htp.moi.gov.krd/fines_form.php" \
         -H "Origin: https://htp.moi.gov.krd" \
         -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
         --data "Sinif=${vehicle_type}&plate=${plate_number}&PlateChar=${plate_char}&SanNumber=${registration_number}" \
-        "https://htp.moi.gov.krd/fines_form_data_1.php")
-    
+        -m 15 "https://htp.moi.gov.krd/fines_form_data_1.php")
+   
     # Check if the curl command made a successful request
-    if [ "$?" -eq 0 ]; then
+    if [[ "$?" -eq 0 && ! "$RESULT" =~ 404|robot|nginx ]]; then
         echo -e "${YELLOW}Hawler Traffic Police${RESET}\n"
         echo -e "Vehicle Type:          ${CYAN}$vehicle_type_text${RESET}"
         echo -e "Plate Number:          ${GREEN}${plate_char_text}$plate_number${RESET}"
         echo -e "Registration Number:   ${MAGENTA}$registration_number${RESET}"
         
-        if echo "$RESULT" | grep -q 'هیچ سزایه‌كى له‌سه‌ر نیه‌'; then
+        if [[ "$RESULT" == *"هیچ سزایه‌كى له‌سه‌ر نیه‌"* ]]; then
             echo -e "\n${GREEN}No fines were found.${RESET}"
+        elif [[ "$RESULT" == *"ژماره‌ى ساڵیانە هەلەیە"* ]]; then
+            echo -e "\n${YELLOW}Error: Wrong registration number.${RESET}"
         else
             # total amount of fines
             total_fine_amount=$(echo "$RESULT" | awk 'match($0, /<h5>ژماره‌ى سه‌رپێچى <.*>(.*)<\/span><\/h5>/, arr) {print arr[1]}')
