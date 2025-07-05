@@ -18,7 +18,7 @@ chmod +x htp.sh
 ```
 
 ## Usage
-To check your fines use the following syntax, please ignore the [Plate Character] if you have an old plate with no character.
+To check your fines use the following syntax, please ignore the [Plate Character] if you have an old plate with no character. You may also use the `--help` or `-h` option to see the correct syntax.
 ```
 /htp.sh <Vehicle Type> [<Plate Character>] <Plate Number> <Registration Number>
 ```
