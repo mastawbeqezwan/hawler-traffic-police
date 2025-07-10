@@ -101,12 +101,15 @@ function fetch_data {
     local registration_number="$3"
    
     COOKIE_JAR=$(mktemp)
+
     curl -s \
+        --http1.1 \
         -c "$COOKIE_JAR" \
         -A "$USER_AGENT" \
-        -m 15 "https://htp.moi.gov.krd/fines_form.php" >/dev/null
+        -m 30 "https://htp.moi.gov.krd/fines_form.php" >/dev/null
 
     RESULT=$(curl -s \
+        --http1.1 \
         -b "$COOKIE_JAR" \
         -A "$USER_AGENT" \
         -H "X-Requested-With: XMLHttpRequest" \
@@ -114,8 +117,10 @@ function fetch_data {
         -H "Origin: https://htp.moi.gov.krd" \
         -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
         --data "Sinif=${vehicle_type}&plate=${plate_number}&PlateChar=${plate_char}&SanNumber=${registration_number}" \
-        -m 15 "https://htp.moi.gov.krd/fines_form_data_1.php")
-   
+        -m 30 "https://htp.moi.gov.krd/fines_form_data_1.php") >/dev/null
+
+    #echo "$RESULT"
+    
     # Check if the curl command made a successful request
     if [[ "$?" -eq 0 && ! "$RESULT" =~ 404|robot|nginx ]]; then
         echo -e "${YELLOW}Hawler Traffic Police${RESET}\n"
