@@ -8,7 +8,7 @@
 #
 # You are free to use, modify, and distribute this script under the terms of the GPLv3.
 
-#  Colors
+# Colors
 RED='\033[31;1m'
 BLUE='\033[34;1m'
 GREEN='\033[32;1m'
@@ -17,13 +17,13 @@ MAGENTA='\033[35;1m'
 CYAN='\033[36;1m'
 RESET='\033[m'
 
-# User-Agent
-VERSION="1.01"
+# Script version
+VERSION="1.03"
 
 # Define user-agent
-USER_AGENT="Mozilla/5.0 (X11; Linux x86_64; rv:136.0) Gecko/20100101 Firefox/136.0"
+USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
 
-# replace kurdish sorani characters to latin ones
+# Replace kurdish sorani characters to latin ones
 sorani_to_latin() {
     sed -e 's/ا/a/g' -e 's/ب/b/g' -e 's/پ/p/g' -e 's/ت/t/g' -e 's/ي/y/g' \
         -e 's/ك/k/g' -e 's/ج/j/g' -e 's/چ/ch/g' -e 's/ح/h/g' -e 's/خ/kh/g' \
@@ -36,6 +36,7 @@ sorani_to_latin() {
         -e 's/ \+/ /g'
 }
 
+# Help command
 show_help() {
     cat <<EOF
 Usage: $0 <Vehicle Type> [<Plate Character>] <Plate Number> <Registration Number>
@@ -59,6 +60,7 @@ Examples:
 EOF
 }
 
+# Map the vehicle type for the request and output
 map_vehicle_type() {
     local input="$1"
 
@@ -96,19 +98,19 @@ map_vehicle_type() {
 
 function fetch_data {
     local plate_char="$1"
-    local plate_char_text=$([ $plate_char = "0" ] && echo "" || echo "$plate_char ")
+    local plate_char_text=$( [ "$plate_char" = "0" ] && echo "" || echo "$plate_char ")
     local plate_number="$2"
     local registration_number="$3"
    
     COOKIE_JAR=$(mktemp)
 
-    curl -s \
+    curl -sL \
         --http1.1 \
         -c "$COOKIE_JAR" \
         -A "$USER_AGENT" \
-        -m 30 "https://htp.moi.gov.krd/fines_form.php" >/dev/null
-
-    RESULT=$(curl -s \
+        -m 30 "https://htp.moi.gov.krd/fines_form_data_1.php" > /dev/null
+    
+    RESULT=$(curl -sL \
         --http1.1 \
         -b "$COOKIE_JAR" \
         -A "$USER_AGENT" \
@@ -117,7 +119,7 @@ function fetch_data {
         -H "Origin: https://htp.moi.gov.krd" \
         -H "Content-Type: application/x-www-form-urlencoded; charset=UTF-8" \
         --data "Sinif=${vehicle_type}&plate=${plate_number}&PlateChar=${plate_char}&SanNumber=${registration_number}" \
-        -m 30 "https://htp.moi.gov.krd/fines_form_data_1.php") >/dev/null
+        -m 30 "https://htp.moi.gov.krd/fines_form_data_1.php")
 
     #echo "$RESULT"
     
